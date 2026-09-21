@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FRONTLINE // Warzone</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080a0b;color:#eee;font-family:Arial,Helvetica,sans-serif}
+body{touch-action:none}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;background:#202521}
+.hud{position:fixed;inset:0;pointer-events:none}
+.top{position:absolute;left:0;right:0;top:0;height:72px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(#080909d9,transparent);text-shadow:0 2px 5px #000}
+.brand{font-weight:900;letter-spacing:3px;font-size:18px}.brand small{display:block;color:#aaa;font-size:9px;letter-spacing:2px;margin-top:3px}
+.stats{display:flex;gap:18px;font-size:12px;font-weight:700}.stats b{font-size:15px}
+.objective{position:absolute;top:83px;left:50%;transform:translateX(-50%);padding:9px 18px;background:#111b15cc;border:1px solid #607064;border-radius:3px;font-size:11px;letter-spacing:1px}
+.cross{position:absolute;left:50%;top:50%;width:28px;height:28px;transform:translate(-50%,-50%);opacity:.9}
+.cross:before,.cross:after{content:"";position:absolute;background:#fff;box-shadow:0 0 4px #000}.cross:before{width:2px;height:28px;left:13px}.cross:after{height:2px;width:28px;top:13px}
+.bottom{position:absolute;left:18px;right:18px;bottom:18px;display:flex;justify-content:space-between;align-items:end}
+.card{background:#0c0f0ed9;border:1px solid #454a47;border-radius:5px;box-shadow:0 8px 25px #0008}
+.health{width:245px;padding:12px}.health .label{font-size:10px;color:#aaa;letter-spacing:1px}.bar{height:8px;background:#242826;margin-top:7px}.fill{height:100%;width:88%;background:#d6d9d5}.armor{margin-top:7px;font-size:10px;color:#aaa}
+.weapon{width:290px;padding:12px 14px;text-align:right}.weapon .name{font-size:20px;font-weight:900;letter-spacing:1px}.ammo{font-size:30px;font-weight:900}.ammo span{font-size:13px;color:#999}
+.controls{position:absolute;inset:0;pointer-events:none}.joy{position:absolute;left:28px;bottom:35px;width:130px;height:130px;border:1px solid #aaa6;border-radius:50%;background:#fff1;pointer-events:auto}.knob{position:absolute;width:54px;height:54px;border-radius:50%;left:38px;top:38px;background:#d7d9d5cc;border:2px solid #fff8}
+.fire{position:absolute;right:35px;bottom:72px;width:104px;height:104px;border-radius:50%;border:2px solid #ddd;background:#191c1bdd;color:#fff;font-weight:900;font-size:14px;pointer-events:auto}.reload{position:absolute;right:155px;bottom:105px;padding:14px 18px;background:#171a18dd;border:1px solid #777;color:#fff;border-radius:4px;font-weight:800;pointer-events:auto}
+.feed{position:absolute;right:18px;top:100px;width:230px;font-size:11px}.feed div{background:#090b0bcc;margin:3px 0;padding:7px;border-left:2px solid #aaa}
+.menu{position:fixed;inset:0;background:#070909eF;display:none;z-index:5;overflow:auto}.menu.show{display:block}
+.panel{width:min(1100px,94vw);margin:55px auto;padding:25px}.panel h1{margin:0;font-size:32px;letter-spacing:2px}.sub{color:#999;margin:7px 0 22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.item{background:#111514;border:1px solid #343936;padding:15px;border-radius:4px}.item h3{margin:0 0 8px}.item p{color:#999;font-size:12px;line-height:1.5}.btn{display:inline-block;background:#ddd;color:#101212;border:0;padding:11px 16px;font-weight:900;cursor:pointer;border-radius:3px;margin:4px}.dark{background:#1b1f1d;color:#eee;border:1px solid #555}
+.close{position:fixed;right:20px;top:18px;background:#171a18;color:#fff;border:1px solid #555;padding:10px 14px;z-index:6}
+#start{position:fixed;inset:0;z-index:10;background:#080a09;display:flex;align-items:flex-end;padding:8vh 7vw}
+.startbox{max-width:700px}.eyebrow{font-size:11px;letter-spacing:4px;color:#aaa}.title{font-size:clamp(45px,9vw,105px);font-weight:900;letter-spacing:-3px;line-height:.88;margin:12px 0}.startbox p{color:#aaa;max-width:560px;line-height:1.6}.startbtn{padding:17px 34px;background:#ddd;color:#101212;border:0;font-weight:900;letter-spacing:2px;cursor:pointer}
+.tip{font-size:10px;color:#777;margin-top:14px}
+@media(max-width:650px){.stats{gap:9px}.stats span{display:none}.weapon{width:180px}.weapon .name{font-size:15px}.ammo{font-size:24px}.health{width:175px}.feed{width:180px}.reload{right:145px}.joy{left:20px;bottom:28px}.fire{right:22px;bottom:52px}}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="start">
+  <div class="startbox">
+    <div class="eyebrow">FRONTLINE DIVISION // OPERATION 01</div>
+    <div class="title">WARZONE</div>
+    <p>A browser-based infantry combat prototype. Fight through a ruined industrial district, capture the objective, eliminate hostile forces and build your loadout.</p>
+    <button class="startbtn" id="deploy">DEPLOY</button>
+    <div class="tip">WASD / ARROWS TO MOVE • MOUSE TO AIM • CLICK TO FIRE • R TO RELOAD</div>
+  </div>
+</div>
+
+<div class="hud">
+ <div class="top">
+  <div class="brand">FRONTLINE<small>INFANTRY COMBAT SYSTEM</small></div>
+  <div class="stats"><span>MISSION <b>01</b></span><span>KILLS <b id="kills">0</b></span><span>CREDITS <b id="credits">1200</b></span></div>
+ </div>
+ <div class="objective">OBJECTIVE A &nbsp; • &nbsp; SECURE THE INDUSTRIAL YARD</div>
+ <div class="cross"></div>
+ <div class="feed" id="feed"></div>
+ <div class="bottom">
+  <div class="health card"><div class="label">VITALS</div><div class="bar"><div class="fill" id="hp"></div></div><div class="armor">ARMOR <b id="armor">75</b></div></div>
+  <div class="weapon card"><div class="name" id="gun">M4A1</div><div class="ammo"><b id="mag">30</b> <span>/ 120</span></div></div>
+ </div>
+</div>
+
+<div class="controls">
+ <div class="joy" id="joy"><div class="knob" id="knob"></div></div>
+ <button class="reload" id="reload">RELOAD</button>
+ <button class="fire" id="fire">FIRE</button>
+</div>
+
+<div class="menu" id="shop"><button class="close" data-close>✕</button><div class="panel"><h1>ARSENAL</h1><div class="sub">FIELD LOADOUT // WEAPON DEPOT</div><div class="grid" id="weapons"></div></div></div>
+<div class="menu" id="maps"><button class="close" data-close>✕</button><div class="panel"><h1>OPERATIONS</h1><div class="sub">SELECT DEPLOYMENT ZONE</div><div class="grid" id="mapsGrid"></div></div></div>
+
+<script>
+const c=document.getElementById('game'),x=c.getContext('2d');
+let W,H,started=false,last=0,keys={},mouse={x:0,y:0,down:false},player={x:500,y:500,hp:100,armor:75,speed:2.6,angle:0,mag:30};
+let cam={x:0,y:0},kills=0,credits=1200,shake=0,flash=0;
+const gunStats={M4A1:{cost:0,dmg:24,rate:130,mag:30},AK-47:{cost:700,dmg:31,rate:170,mag:30},SCAR-H:{cost:1200,dmg:38,rate:210,mag:20},MP5:{cost:550,dmg:18,rate:85,mag:32},DMR-7:{cost:1500,dmg:55,rate:420,mag:12}};
+let gun='M4A1',lastShot=0;
+const walls=[
+{x:170,y:130,w:430,h:80},{x:760,y:120,w:310,h:100},{x:1150,y:190,w:180,h:430},
+{x:180,y:650,w:360,h:120},{x:690,y:600,w:150,h:360},{x:960,y:760,w:480,h:100},
+{x:360,y:350,w:110,h:170},{x:840,y:360,w:100,h:180},{x:1080,y:520,w:130,h:120}
+];
+let enemies=[];
+for(let i=0;i<14;i++) enemies.push({x:180+Math.random()*1100,y:150+Math.random()*750,hp:70,alive:true,shoot:Math.random()*2});
+function resize(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);W=innerWidth;H=innerHeight} addEventListener('resize',resize);resize();
+function addFeed(t){let d=document.createElement('div');d.textContent=t;document.getElementById('feed').prepend(d);setTimeout(()=>d.remove(),2800)}
+function blocked(px,py){return walls.some(a=>px>a.x-16&&px<a.x+a.w+16&&py>a.y-16&&py<a.y+a.h+16)}
+function shoot(){let g=gunStats[gun],now=performance.now();if(now-lastShot<g.rate)return;if(player.mag<=0){reload();return}lastShot=now;player.mag--;flash=1;shake=3;
+ let wx=player.x+Math.cos(player.angle)*30,wy=player.y+Math.sin(player.angle)*30;
+ let best=null,bd=Infinity;
+ enemies.forEach(e=>{if(!e.alive)return;let dx=e.x-wx,dy=e.y-wy,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx),da=Math.atan2(Math.sin(a-player.angle),Math.cos(a-player.angle));if(d<850&&Math.abs(da)<.08&&d<bd){best=e;bd=d}});
+ if(best){best.hp-=g.dmg;if(best.hp<=0){best.alive=false;kills++;credits+=100;addFeed('HOSTILE DOWN +100');respawn(best)}else addFeed('HIT CONFIRMED')}}
+function respawn(e){setTimeout(()=>{e.x=150+Math.random()*1200;e.y=120+Math.random()*850;e.hp=70;e.alive=true},1800)}
+function reload(){player.mag=gunStats[gun].mag;addFeed('MAGAZINE RELOADED')}
+function move(dt){let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);if(joyX||joyY){dx=joyX;dy=joyY}let l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;let nx=player.x+dx*player.speed*dt/16,ny=player.y+dy*player.speed*dt/16;if(!blocked(nx,player.y))player.x=nx;if(!blocked(player.x,ny))player.y=ny}
+function drawWorld(){x.fillStyle='#242a25';x.fillRect(0,0,W,H);let ox=-cam.x,oy=-cam.y;
+ // ground grid
+ x.strokeStyle='#343a34';x.lineWidth=1;for(let gx=Math.floor(cam.x/80)*80;gx<cam.x+W+80;gx+=80){x.beginPath();x.moveTo(gx+ox,oy);x.lineTo(gx+ox,H+oy);x.stroke()}for(let gy=Math.floor(cam.y/80)*80;gy<cam.y+H+80;gy+=80){x.beginPath();x.moveTo(ox,gy+oy);x.lineTo(W+ox,gy+oy);x.stroke()}
+ walls.forEach(a=>{x.fillStyle='#111514';x.fillRect(a.x+ox,a.y+oy,a.w,a.h);x.strokeStyle='#555c56';x.strokeRect(a.x+ox,a.y+oy,a.w,a.h);x.fillStyle='#2c312e';for(let i=20;i<a.w;i+=45)x.fillRect(a.x+i+ox,a.y+oy,8,a.h)});
+ // road
+ x.fillStyle='#171b19';x.fillRect(-cam.x,470-cam.y,W,180);x.strokeStyle='#4b4f4b';x.setLineDash([30,30]);x.beginPath();x.moveTo(0,560-cam.y);x.lineTo(W,560-cam.y);x.stroke();x.setLineDash([]);
+ enemies.forEach(e=>{if(!e.alive)return;drawSoldier(e.x+ox,e.y+oy,e,false)});
+ drawSoldier(player.x+ox,player.y+oy,player,true);
+}
+function drawSoldier(px,py,e,isPlayer){x.save();x.translate(px,py);x.rotate(isPlayer?player.angle:Math.atan2(player.y-e.y,player.x-e.x));
+ // shadow
+ x.fillStyle='#0008';x.beginPath();x.ellipse(0,18,19,8,0,0,Math.PI*2);x.fill();
+ // legs
+ x.fillStyle='#151816';x.fillRect(-13,8,9,17);x.fillRect(4,8,9,17);
+ // torso/vest
+ x.fillStyle=isPlayer?'#59635b':'#403f3a';x.fillRect(-15,-17,30,29);x.fillStyle='#252a26';x.fillRect(-13,-10,26,7);
+ // arms
+ x.fillStyle=isPlayer?'#4c554e':'#353633';x.fillRect(-24,-10,10,25);x.fillRect(14,-10,10,25);
+ // helmet/head
+ x.fillStyle='#b5a58c';x.beginPath();x.arc(0,-25,11,0,Math.PI*2);x.fill();x.fillStyle='#30362f';x.beginPath();x.arc(0,-29,13,Math.PI,Math.PI*2);x.fill();
+ // rifle
+ x.strokeStyle='#101211';x.lineWidth=6;x.beginPath();x.moveTo(4,-4);x.lineTo(34,-8);x.stroke();x.lineWidth=3;x.strokeStyle='#686b65';x.beginPath();x.moveTo(16,-5);x.lineTo(38,-8);x.stroke();
+ if(!isPlayer){x.fillStyle='#c44';x.fillRect(-18,-43,36,3);x.fillStyle='#6d9a6b';x.fillRect(-18,-43,36*Math.max(0,e.hp/70),3)}
+ x.restore()
+}
+let joyX=0,joyY=0,joyActive=false;const joy=document.getElementById('joy'),knob=document.getElementById('knob');
+function joyMove(ev){let r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,t=ev.touches?ev.touches[0]:ev,dX=t.clientX-cx,dY=t.clientY-cy,l=Math.hypot(dX,dY),m=42;if(l>m){dX=dX/l*m;dY=dY/l*m}joyX=dX/m;joyY=dY/m;knob.style.transform=`translate(${dX}px,${dY}px)`}
+joy.addEventListener('pointerdown',e=>{joyActive=true;joyMove(e)});addEventListener('pointermove',e=>{if(joyActive)joyMove(e)});addEventListener('pointerup',()=>{joyActive=false;joyX=joyY=0;knob.style.transform=''});
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='r')reload()});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+c.addEventListener('pointermove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});c.addEventListener('pointerdown',()=>mouse.down=true);addEventListener('pointerup',()=>mouse.down=false);
+document.getElementById('fire').addEventListener('pointerdown',e=>{e.preventDefault();mouse.down=true});document.getElementById('fire').addEventListener('pointerup',()=>mouse.down=false);
+document.getElementById('reload').onclick=reload;
+document.getElementById('deploy').onclick=()=>{document.getElementById('start').style.display='none';started=true;addFeed('DEPLOYMENT CONFIRMED')};
+function aim(){if(innerWidth<700)return;let sx=player.x-cam.x,sy=player.y-cam.y;player.angle=Math.atan2(mouse.y-sy,mouse.x-sx)}
+function loop(t){let dt=Math.min(32,t-last||16);last=t;if(started){move(dt);aim();if(mouse.down)shoot();cam.x=player.x-W/2;cam.y=player.y-H/2;cam.x=Math.max(0,Math.min(1450-W,cam.x));cam.y=Math.max(0,Math.min(1050-H,cam.y));drawWorld();flash=Math.max(0,flash-dt/120);shake=Math.max(0,shake-dt/25);document.getElementById('kills').textContent=kills;document.getElementById('credits').textContent=credits;document.getElementById('mag').textContent=player.mag;document.getElementById('gun').textContent=gun;document.getElementById('hp').style.width=player.hp+'%';document.getElementById('armor').textContent=player.armor}
+requestAnimationFrame(loop)}requestAnimationFrame(loop);
+const weapons=document.getElementById('weapons');Object.entries(gunStats).forEach(([n,s])=>{let d=document.createElement('div');d.className='item';d.innerHTML=`<h3>${n}</h3><p>DAMAGE ${s.dmg}<br>FIRE RATE ${s.rate}ms<br>MAGAZINE ${s.mag}</p><button class="btn">${s.cost?'BUY $'+s.cost:'EQUIPPED'}</button>`;d.querySelector('button').onclick=()=>{if(!s.cost||credits>=s.cost){if(s.cost){credits-=s.cost}gun=n;player.mag=s.mag;addFeed(n+' EQUIPPED');document.getElementById('shop').classList.remove('show')}else addFeed('INSUFFICIENT CREDITS')};weapons.appendChild(d)});
+['Industrial Yard','Old Town','Harbor Front','Desert Outpost','Snowline Base','Ruined City'].forEach((n,i)=>{let d=document.createElement('div');d.className='item';d.innerHTML=`<h3>${n}</h3><p>OPERATION ${String(i+1).padStart(2,'0')}<br>Infantry combat zone<br>Multiple cover positions</p><button class="btn">SELECT</button>`;d.querySelector('button').onclick=()=>{addFeed(n.toUpperCase()+' SELECTED');document.getElementById('maps').classList.remove('show')};document.getElementById('mapsGrid').appendChild(d)});
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.parentElement.classList.remove('show'));
+document.addEventListener('keydown',e=>{if(e.key==='1')document.getElementById('shop').classList.add('show');if(e.key==='2')document.getElementById('maps').classList.add('show')});
+const shopBtn=document.createElement('button');shopBtn.textContent='ARSENAL';shopBtn.className='btn';shopBtn.style.position='fixed';shopBtn.style.top='105px';shopBtn.style.left='18px';shopBtn.style.zIndex='3';shopBtn.onclick=()=>document.getElementById('shop').classList.add('show');document.body.appendChild(shopBtn);
+const mapBtn=shopBtn.cloneNode(true);mapBtn.textContent='MAPS';mapBtn.style.left='105px';mapBtn.onclick=()=>document.getElementById('maps').classList.add('show');document.body.appendChild(mapBtn);
+</script>
+</body>
+</html>
